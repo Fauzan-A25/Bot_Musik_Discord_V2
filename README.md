@@ -45,11 +45,11 @@ Follow these steps to get a copy of the project running on your local machine.
    ```bash
    npm install
    ```
-4. Configure your bot by editing `config.json` in the `src` folder.
+4. Change `.env.sample` in the `src` folder to `.env` and configure your config.
 
 5. Start the bot:
    ```bash
-   npm start
+   node .
    ```
 
 ## 🔧 Configuration
