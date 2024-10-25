@@ -19,14 +19,25 @@ const client = new Client({
 const fs = require("fs");
 const path = require("path");
 
-const config = require("./config.json");
+require("dotenv").config({ path: './src/.env' });
 const { SpotifyPlugin } = require("@distube/spotify");
 const { SoundCloudPlugin } = require("@distube/soundcloud");
 const { YtDlpPlugin } = require("@distube/yt-dlp");
 const { createPlaySongEmbed } = require("./utils/song");
 const ffmpegPath = require("ffmpeg-static");
 
-client.config = config;
+client.config = {
+  token: process.env.TOKEN,
+  emoji: {
+    play: process.env.EMOJI_PLAY,
+    stop: process.env.EMOJI_STOP,
+    queue: process.env.EMOJI_QUEUE,
+    success: process.env.EMOJI_SUCCESS,
+    repeat: process.env.EMOJI_REPEAT,
+    error: process.env.EMOJI_ERROR,
+  },
+};
+
 const distube = new DisTube(client, {
   ffmpeg: {
     path: ffmpegPath,
@@ -36,22 +47,14 @@ const distube = new DisTube(client, {
   emitAddListWhenCreatingQueue: false,
   plugins: [new SpotifyPlugin(), new SoundCloudPlugin(), new YtDlpPlugin()],
 });
+
 client.commandArray = [];
 client.commands = new Collection();
 client.aliases = new Collection();
-client.emotes = config.emoji;
+client.emotes = client.config.emoji;
 client.distube = distube;
 client.buttons = new Map();
 client.queue = new Map();
-
-const functionFolders = fs.readdirSync(`./src/functions`);
-for (const folder of functionFolders) {
-  const functionFiles = fs
-    .readdirSync(`./src/functions/${folder}`)
-    .filter((file) => file.endsWith(".js"));
-  for (const file of functionFiles)
-    require(`./functions/${folder}/${file}`)(client);
-}
 
 function importCommands(dir) {
   const commands = {};
@@ -64,7 +67,13 @@ function importCommands(dir) {
   return commands;
 }
 
-const commands = importCommands(path.join(__dirname, "components/buttons"));
+const commands = importCommands(path.join(__dirname, "./components/buttons"));
+
+for (const [name, command] of Object.entries(commands)) {
+  client.buttons.set(command.data.customId, command);
+  console.log(`Button loaded: ${command.data.customId}`);
+}
+
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot || !message.guild) return;
@@ -93,10 +102,6 @@ const notificationAlert = (queue, embeds = [], components = []) => {
   queue.textChannel.send({ embeds, components });
 };
 
-const notificationAlert2 = (queue, embeds = []) => {
-  queue.textChannel.send({ embeds });
-};
-
 const errorsHandling = (channel, e) => {
   const errorMessage = `${client.emotes.error} | An error encountered: ${e
     .toString()
@@ -113,19 +118,29 @@ client.on("interactionCreate", async (interaction) => {
 
   const { customId } = interaction;
 
-  const command = commands[`${customId}`]; // Sesuaikan nama file dengan customId
-  if (command && command.execute) {
+  // Optimalkan dengan mengambil dari client.buttons
+  const button = client.buttons.get(customId);
+
+  if (button && button.execute) {
     try {
-      await command.execute(client, interaction); // Pass client and interaction
+      await button.execute(client, interaction); // Eksekusi tombol dari client.buttons
     } catch (error) {
-      console.error(`Error executing ${customId}:`, error);
+      console.error(
+        `Error executing button with custom ID: ${customId}`,
+        error
+      );
+
       await interaction.reply({
-        content: "There was an error while executing this command!",
+        content: `There was an error executing the button: ${error.message}`,
         ephemeral: true,
       });
     }
   } else {
-    console.error(`No command found for custom ID: ${customId}`);
+    console.error(`No button found for custom ID: ${customId}`);
+    await interaction.reply({
+      content: `Button not found for ID: ${customId}`,
+      ephemeral: true,
+    });
   }
 });
 
@@ -153,7 +168,7 @@ client.distube
         `${client.emotes.success} | Added ${song.name} - \`${song.formattedDuration}\` to the queue by ${song.user}`
       )
       .setTimestamp();
-    notificationAlert2(queue, [addSongEmbed]);
+    notificationAlert(queue, [addSongEmbed]);
   })
   .on("addList", (queue, playlist) => {
     console.log("Added playlist:", playlist.name);
@@ -163,7 +178,7 @@ client.distube
         `${client.emotes.success} | Added \`${playlist.name}\` playlist (${playlist.songs.length} songs) to queue`
       )
       .setTimestamp();
-    notificationAlert2(queue, [addListEmbed]);
+    notificationAlert(queue, [addListEmbed]);
   })
   .on("error", (channel, e) => errorsHandling(channel, e))
   .on("empty", (channel) => {
@@ -172,7 +187,7 @@ client.distube
       .setColor("#ff0000")
       .setDescription("Voice channel is empty! Leaving the channel...")
       .setTimestamp();
-    notificationAlert2(channel, [emptyEmbed]);
+    notificationAlert(channel, [emptyEmbed]);
   })
   .on("searchNoResult", (message, query) => {
     console.log("No search results for:", query);
@@ -182,7 +197,7 @@ client.distube
         `${client.emotes.error} | No result found for \`${query}\`!`
       )
       .setTimestamp();
-    notificationAlert2(message.channel, [noResultEmbed]);
+    notificationAlert(message.channel, [noResultEmbed]);
   })
   .on("finish", async (queue) => {
     try {
@@ -202,7 +217,7 @@ client.distube
         .setColor("#0099ff")
         .setDescription("Queue finished! Leaving the voice channel...")
         .setTimestamp();
-      await notificationAlert2(queue, [finishEmbed]);
+      await notificationAlert(queue, [finishEmbed]);
 
       // Ensure the bot leaves the voice channel
       const connection = client.voice.connections.find(
@@ -227,4 +242,4 @@ for (const folder of functionfolders) {
 
 client.handleEvents();
 client.handleCommands();
-client.login(config.token);
+client.login(process.env.TOKEN);

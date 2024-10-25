@@ -1,9 +1,9 @@
 module.exports = {
   data: {
-    name: "pause",
+    customId: "pause",
   },
   execute: async (client, interaction) => {
-    const queue = client.distube.getQueue(interaction);
+    const queue = distube.getQueue(interaction.guildId);
 
     if (!queue) {
       return await interaction.reply({

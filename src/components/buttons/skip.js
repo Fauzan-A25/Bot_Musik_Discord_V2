@@ -3,7 +3,7 @@ const { createPlaySongEmbed } = require("../../utils/song");
 
 module.exports = {
   data: {
-    name: "skip",
+    customId: "skip",
   },
   execute: async (client, interaction) => {
     const player = client.distube.getQueue(interaction.guild.id);

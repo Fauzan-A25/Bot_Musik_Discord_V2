@@ -3,7 +3,7 @@ const { InteractionType } = require('discord.js');
 module.exports = {
     name: "interactionCreate",
     async execute(interaction, client) {
-        if (interaction.isChatInputCommand()) {
+        if (interaction.type === InteractionType.ApplicationCommand) { // Chat Input Command
             const { commands } = client;
             const { commandName } = interaction;
             const command = commands.get(commandName);
@@ -18,7 +18,7 @@ module.exports = {
                     ephemeral: true
                 });
             }
-        } else if (interaction.type == InteractionType.ApplicationCommandAutocomplete) {
+        } else if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
             const { commands } = client;
             const { commandName } = interaction;
             const command = commands.get(commandName);
@@ -26,18 +26,18 @@ module.exports = {
             try {
                 await command.autocomplete(interaction, client);
             } catch (error) {
-                //console.log(`[Interaction > Create autocomplete : ERROR] ${error}`);
+                console.error(error);
             }
-        }else if (interaction.isButton()) {
+        } else if (interaction.type === InteractionType.MessageComponent) { // Button Interaction
             const { buttons } = client;
-            const { customId } = client;
+            const { customId } = interaction;
             const button = buttons.get(customId);
-            if (!button) return new Error('Tidak Ada Button Di code ini');
+            if (!button) return;
 
             try {
-                await button.execute(interaction,client)
-            } catch (err) {
-                console.error(err);
+                await button.execute(interaction, client);
+            } catch (error) {
+                console.error(error);
             }
         }
     }

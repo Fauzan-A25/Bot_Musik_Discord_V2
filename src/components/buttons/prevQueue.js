@@ -2,7 +2,7 @@ const { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle } = require('
 
 module.exports = {
     data: {
-        name: 'prevQueue'
+      customId: 'prevQueue'
     },
     async execute(client, interaction) {
         const queue = client.distube.getQueue(interaction.guild.id);

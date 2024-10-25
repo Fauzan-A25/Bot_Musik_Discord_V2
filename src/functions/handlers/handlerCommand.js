@@ -18,9 +18,9 @@ module.exports = (client) => {
                 console.log(`Commands | Loaded: ${command.data.name}`);
             }
         }
-        const clientId = '1066676813964787742';
-        const guildId = '1022824188593066035';
-        const rest = new REST({ version: '9' }).setToken(client.config.token);
+        const clientId = process.env.CLIENT_ID; // Mengambil clientId dari .env
+        const guildId = process.env.GUILD_ID;   // Mengambil guildId dari .env
+        const rest = new REST({ version: '9' }).setToken(process.env.TOKEN); // Mengambil token dari .env
         try {
             console.log('Started refreshing application (/) commands.');
 

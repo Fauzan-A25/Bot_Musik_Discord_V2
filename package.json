@@ -11,21 +11,17 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/builders": "^1.9.0",
-    "@discordjs/node-pre-gyp": "^0.4.5",
     "@discordjs/rest": "^2.4.0",
     "@discordjs/voice": "^0.17.0",
     "@distube/soundcloud": "^2.0.3",
     "@distube/spotify": "^2.0.2",
     "@distube/yt-dlp": "^2.0.1",
-    "@distube/ytdl-core": "^4.14.4",
     "discord-api-types": "^0.37.103",
     "discord.js": "^14.16.3",
     "distube": "^5.0.2",
-    "eslint-config-prettier": "^9.0.0",
+    "dotenv": "^16.4.5",
     "ffmpeg-static": "^4.2.7",
-    "fs": "^0.0.1-security",
-    "libsodium-wrappers": "^0.7.11",
-    "openai": "^4.52.3",
-    "opusscript": "^0.0.8"
+    "libsodium-wrappers": "^0.7.15",
+    "openai": "^4.52.3"
   }
 }

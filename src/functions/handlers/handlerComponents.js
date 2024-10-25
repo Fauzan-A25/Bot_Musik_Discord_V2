@@ -38,4 +38,7 @@ module.exports = (client) => {
       }
     }
   };
+  // Load the interactionCreate event
+  const interactionCreate = require('../../events/client/interactionCreate');
+  client.on(interactionCreate.name, interactionCreate.execute.bind(null, client));
 };

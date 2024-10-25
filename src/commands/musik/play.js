@@ -10,81 +10,57 @@ module.exports = {
         .setDescription("Isi dengan nama lagu atau URL yang ingin diputar")
         .setRequired(true)
     ),
+  
   async execute(interaction, client) {
     await interaction.deferReply();
-    const args = interaction.options.getString("query");
+    const query = interaction.options.getString("query");
     const memberVC = interaction.member.voice.channel;
-
-    // Embed untuk member tidak ada di voice channel
-    let embed = new EmbedBuilder()
-      .setDescription(
-        `🚫 | Anda harus berada di voice channel untuk memutar musik!`
-      )
-      .setColor("Red");
-
-    if (!memberVC) {
-      return interaction.editReply({ embeds: [embed] });
-    }
-
-    // Embed jika bot sudah ada di voice channel lain
-    embed = new EmbedBuilder()
-      .setDescription(
-        `🚫 | Anda harus berada di channel yang sama dengan bot untuk memutar musik!`
-      )
-      .setColor("Red");
-
     const clientVC = interaction.guild.members.me.voice.channel;
-    if (clientVC && clientVC !== memberVC) {
+
+    // Function to create and send embeds
+    const sendEmbed = (description, color) => {
+      const embed = new EmbedBuilder().setDescription(description).setColor(color);
       return interaction.editReply({ embeds: [embed] });
+    };
+
+    // Check if the user is in a voice channel
+    if (!memberVC) {
+      return sendEmbed("🚫 | Anda harus berada di voice channel untuk memutar musik!", "Red");
     }
 
-    // Fungsi untuk mencoba memutar musik hingga maksimal 2 kali
-    const maxRetries = 2; // Batas maksimal pengulangan
-    let attempt = 0;
-    let success = false;
+    // Check if the bot is in a different voice channel
+    if (clientVC && clientVC !== memberVC) {
+      return sendEmbed("🚫 | Anda harus berada di channel yang sama dengan bot untuk memutar musik!", "Red");
+    }
 
-    while (attempt < maxRetries && !success) {
-      attempt++;
+    // Function to attempt playing music
+    const playMusic = async (attempt = 1, maxRetries = 2) => {
       try {
-        await client.distube.play(memberVC, args, {
+        await client.distube.play(memberVC, query, {
           member: interaction.member,
           textChannel: interaction.channel,
           interaction,
         });
 
-        // Embed saat musik mulai diputar
-        embed = new EmbedBuilder()
-          .setDescription(`🎶 | Sedang memutar: **${args}**`)
-          .setColor("Green");
-
-        await interaction.editReply({ embeds: [embed] });
-        success = true; // Berhenti jika berhasil memutar lagu
+        return sendEmbed(`🎶 | Sedang memutar: **${query}**`, "Green");
       } catch (error) {
         console.error(`Percobaan ${attempt} gagal:`, error);
 
-        // Jika lagu tidak ditemukan pada percobaan pertama, coba sekali lagi
-        if (error.errorCode === "CANNOT_RESOLVE_SONG") {
-          if (attempt === maxRetries) {
-            // Jika sudah mencoba 2 kali dan tetap gagal, kirim pesan kesalahan
-            embed = new EmbedBuilder()
-              .setDescription(
-                `🚫 | Lagu tidak ditemukan setelah ${maxRetries} kali percobaan. Coba gunakan judul atau URL yang berbeda.`
-              )
-              .setColor("Red");
-
-            return interaction.editReply({ embeds: [embed] });
-          }
-        } else {
-          // Jika ada error lain, kirim pesan kesalahan
-          embed = new EmbedBuilder()
-            .setDescription(
-              `🚫 | Terjadi kesalahan saat mencoba memutar musik: ${error.message}`
-            )
-            .setColor("Red");
-
-          return interaction.editReply({ embeds: [embed] });
+        // If song can't be resolved, retry if not max attempt reached
+        if (error.errorCode === "CANNOT_RESOLVE_SONG" && attempt < maxRetries) {
+          return playMusic(attempt + 1);
         }
+
+        // Send final error message if retries are exhausted or a different error occurred
+        const errorMessage = attempt === maxRetries
+          ? `🚫 | Lagu tidak ditemukan setelah ${maxRetries} kali percobaan. Coba gunakan judul atau URL yang berbeda.`
+          : `🚫 | Terjadi kesalahan saat mencoba memutar musik: ${error.message}`;
+
+        return sendEmbed(errorMessage, "Red");
       }
-    }
+    };
+
+    // Attempt to play music
+    await playMusic();
   },
 };

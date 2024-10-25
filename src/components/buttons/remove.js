@@ -1,6 +1,6 @@
 module.exports = {
     data: {
-      name: "remove",
+      customId: "remove",
     },
     execute: async (client, interaction) => {
         const queue = client.distube.getQueue(interaction);
