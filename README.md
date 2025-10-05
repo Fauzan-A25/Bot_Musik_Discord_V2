@@ -1,82 +1,345 @@
-# Discord Music Bot
+# 🎵 Discord Music Bot
 
-This repository contains the code for a feature-rich Discord music bot built using **Node.js**. The bot allows users to play, pause, skip, and manage music directly in their Discord server. It supports multiple music sources, including **YouTube**, **SoundCloud**, and **Spotify**.
+A feature-rich Discord music bot built with Node.js and discord.js v14. Stream high-quality music from YouTube directly to your Discord server with advanced features like loop modes, queue management, and more.
 
-## 🎵 Features
+[![Discord.js](https://img.shields.io/badge/discord.js-v14.16.3-blue.svg)](https://discord.js.org/)
+[![Node.js](https://img.shields.io/badge/node.js-v16%2B-brightgreen.svg)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-- **Play Music**: Stream music from YouTube, SoundCloud, and Spotify.
-- **Control Music Playback**: Play, pause, skip, stop, and queue tracks.
-- **High-Quality Audio**: Ensures high-quality audio playback for an enjoyable listening experience.
-- **Easy Setup**: Simple configuration process with a user-friendly interface.
-- **Multi-Source Support**: Support for YouTube, SoundCloud, Spotify, and more.
+## ✨ Features
 
-## 📂 Folder Structure
+- 🎵 **High-Quality Audio Streaming** - Stream music from YouTube using yt-dlp
+- 🔊 **Volume Control** - Adjust volume from 0-100%
+- 🔁 **Loop Modes** - Loop single song or entire queue
+- 📜 **Queue Management** - View, shuffle, and manage your music queue
+- ⏸️ **Playback Controls** - Play, pause, resume, skip, and stop
+- 🎲 **Shuffle** - Randomize your queue
+- 🔍 **Search** - Search YouTube directly from Discord
+- 📊 **Now Playing** - Beautiful embeds showing current song info
+- ⏱️ **Auto-Disconnect** - Automatically leaves voice channel when inactive
+- 🛡️ **Error Handling** - Robust error handling and recovery
 
-📦 Bot_Musik_Discord_V1
-├── 📁 node_modules
-├── 📁 src
-├── 1721014397421-base.js
-├── 1721014511610-base.js
-├── package-lock.json
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- [Node.js](https://nodejs.org/) v16.11.0 or higher
+- [npm](https://www.npmjs.com/) (comes with Node.js)
+- [FFmpeg](https://ffmpeg.org/download.html)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) (for YouTube streaming)
+
+### Installing FFmpeg
+
+#### Windows
+```
+
+
+# Using Chocolatey
+
+choco install ffmpeg
+
+# Or using winget
+
+winget install ffmpeg
+
+```
+
+#### Linux (Ubuntu/Debian)
+```
+
+sudo apt update
+sudo apt install ffmpeg
+
+```
+
+#### macOS
+```
+
+brew install ffmpeg
+
+```
+
+### Installing yt-dlp
+
+```
+
+
+# Using npm (recommended)
+
+npm install -g yt-dlp
+
+# Or using pip
+
+pip install yt-dlp
+
+# Or using winget (Windows)
+
+winget install yt-dlp.yt-dlp
+
+```
+
+## 🚀 Installation
+
+### 1. Clone the Repository
+
+```
+
+git clone https://github.com/yourusername/discord-music-bot.git
+cd discord-music-bot
+
+```
+
+### 2. Install Dependencies
+
+```
+
+npm install
+
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root directory:
+
+```
+
+
+# Discord Bot Configuration
+
+DISCORD_TOKEN=your_discord_bot_token_here
+CLIENT_ID=your_bot_client_id_here
+GUILD_ID=your_test_server_id_here (optional, for development)
+
+# Node Environment
+
+NODE_ENV=production
+
+```
+
+**How to get Discord Token:**
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
+2. Create a new application or select existing one
+3. Go to "Bot" section
+4. Click "Reset Token" and copy the token
+5. Paste it in `.env` file
+
+### 4. Deploy Slash Commands
+
+```
+
+npm run deploy
+
+```
+
+### 5. Start the Bot
+
+```
+
+
+# Production
+
+npm start
+
+# Development (with nodemon)
+
+npm run dev
+
+```
+
+## 🎮 Commands
+
+### Music Commands
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `/play` | Play a song from YouTube | `/play query:song name` or `/play query:youtube_url` |
+| `/pause` | Pause the current song | `/pause` |
+| `/resume` | Resume the paused song | `/resume` |
+| `/skip` | Skip the current song | `/skip` |
+| `/stop` | Stop playback and clear queue | `/stop` |
+| `/queue` | Show the current queue | `/queue` or `/queue page:2` |
+| `/nowplaying` | Show currently playing song | `/nowplaying` |
+| `/loop` | Set loop mode | `/loop mode:off/song/queue` |
+| `/shuffle` | Shuffle the queue | `/shuffle` |
+| `/volume` | Change volume | `/volume level:50` |
+| `/remove` | Remove song from queue | `/remove position:3` |
+| `/clear` | Clear the entire queue | `/clear` |
+
+### Utility Commands
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `/help` | Show all commands | `/help` |
+| `/ping` | Check bot latency | `/ping` |
+
+## 📁 Project Structure
+
+```
+
+discord-music-bot/
+├── src/
+│   ├── commands/
+│   │   ├── music/
+│   │   │   ├── play.js
+│   │   │   ├── pause.js
+│   │   │   ├── resume.js
+│   │   │   ├── skip.js
+│   │   │   ├── stop.js
+│   │   │   ├── queue.js
+│   │   │   ├── loop.js
+│   │   │   ├── shuffle.js
+│   │   │   ├── volume.js
+│   │   │   ├── nowplaying.js
+│   │   │   ├── remove.js
+│   │   │   └── clear.js
+│   │   └── utility/
+│   │       ├── help.js
+│   │       └── ping.js
+│   ├── events/
+│   │   ├── client/
+│   │   │   └── ready.js
+│   │   └── interaction/
+│   │       └── interactionCreate.js
+│   ├── handlers/
+│   │   ├── commandHandler.js
+│   │   ├── eventHandler.js
+│   │   └── deployCommands.js
+│   ├── utils/
+│   │   ├── musicPlayer.js
+│   │   ├── queueManager.js
+│   │   ├── validators.js
+│   │   ├── embedBuilder.js
+│   │   └── logger.js
+│   ├── services/
+│   │   └── youtubeService.js
+│   ├── config/
+│   │   ├── botConfig.js
+│   │   └── constants.js
+│   └── index.js
+├── .env
+├── .gitignore
 ├── package.json
 └── README.md
 
-## 🚀 Getting Started
+```
 
-Follow these steps to get a copy of the project running on your local machine.
+## ⚙️ Configuration
 
-### Prerequisites
+Edit `src/config/botConfig.js` to customize bot behavior:
 
-- **Node.js** (v12 or later)
-- **Discord Account** and a Discord server
-- **Discord API Bot** (API your bot token)
+```
 
-### Installation
+module.exports = {
+// Music Configuration
+music: {
+defaultVolume: 50,
+maxVolume: 100,
+leaveOnEnd: true,
+disconnectTime: 60000, // 1 minute
+},
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Fauzan-A25/Bot_Musik_Discord_V1.git
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd Bot_Musik_Discord_V1
-   ```
-3. Install the dependencies:
-   ```bash
-   npm install
-   ```
-4. Change `.env.sample` in the `src` folder to `.env` and configure your config.
+    // Embed Colors
+    colors: {
+        success: 0x00ff00,
+        error: 0xff0000,
+        info: 0x3498db,
+        music: 0x9b59b6,
+    },
+    
+    // Emojis
+    emojis: {
+        play: '▶️',
+        pause: '⏸️',
+        stop: '⏹️',
+        skip: '⏭️',
+        queue: '📜',
+        loop: '🔁',
+        shuffle: '🔀',
+    }
+    };
 
-5. Start the bot:
-   ```bash
-   node .
-   ```
+```
 
-## 🔧 Configuration
+## 🔧 Troubleshooting
 
-Make sure to update `config.json` with your Discord bot token and other necessary API keys.
+### Bot is not responding to commands
 
-## 📦 Technologies Used
+1. Make sure bot is online (check Discord)
+2. Ensure slash commands are deployed: `npm run deploy`
+3. Check bot has proper permissions in your server
+4. Verify `.env` file has correct token
 
-- **Node.js**: JavaScript runtime for building the bot logic
-- **Discord.js**: A powerful Node.js module that allows you to interact with the Discord API
-- **YouTube API**: For retrieving YouTube videos (optional)
-- **Other APIs**: Integration with various music streaming services
+### "FFmpeg not found" error
+
+Install FFmpeg following the [Prerequisites](#prerequisites) section above, or install via npm:
+
+```
+
+npm install ffmpeg-static
+
+```
+
+### "yt-dlp not initialized" error
+
+Install yt-dlp globally:
+
+```
+
+npm install -g yt-dlp
+
+```
+
+Or add to PATH if manually installed.
+
+### 403 Forbidden / YouTube blocking
+
+YouTube occasionally blocks requests. This is usually temporary. Try:
+1. Restart the bot
+2. Update yt-dlp: `yt-dlp -U`
+3. Wait a few minutes and try again
+
+### Audio cutting out or stuttering
+
+1. Check your internet connection
+2. Lower the volume: `/volume level:50`
+3. Try a different song
+4. Restart the bot
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/Fauzan-A25/Bot_Musik_Discord_V1/issues).
+Contributions are welcome! Please follow these steps:
 
-## 🛠️ License
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+## 📝 License
 
-## 📧 Contact
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-For any questions or feedback, you can reach out to:
+## 🙏 Acknowledgments
 
-- **GitHub**: [Fauzan-A25](https://github.com/Fauzan-A25)
+- [discord.js](https://discord.js.org/) - Discord API wrapper
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - YouTube downloader
+- [play-dl](https://github.com/play-dl/play-dl) - YouTube search and info
+- [FFmpeg](https://ffmpeg.org/) - Audio processing
+
+## 📧 Support
+
+If you need help or have questions:
+
+- Open an [issue](https://github.com/yourusername/discord-music-bot/issues)
+- Join our [Discord server](https://discord.gg/yourserver)
+- Email: your.email@example.com
+
+## 🎉 Showcase
+
+![Bot in Action](https://via.placeholder.com/800x400?text=Discord+Music+Bot)
 
 ---
 
-Made with ❤️ by Fauzan-A25
+⭐ If you like this project, please give it a star on GitHub!
+
+Made by [Fauzan A-25](https://github.com/Fauzan-A25)
