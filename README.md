@@ -330,13 +330,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you need help or have questions:
 
-- Open an [issue](https://github.com/yourusername/discord-music-bot/issues)
-- Join our [Discord server](https://discord.gg/yourserver)
-- Email: your.email@example.com
-
-## 🎉 Showcase
-
-![Bot in Action](https://via.placeholder.com/800x400?text=Discord+Music+Bot)
+- Email: fauzanahsanudin@gmail.com
 
 ---
 
