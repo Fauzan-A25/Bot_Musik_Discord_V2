@@ -61,7 +61,14 @@ class MusicPlayer {
   }
 
   async play(queue) {
-    if (!queue || queue.isEmpty()) {
+    // ✅ FIX: Check queue exists
+    if (!queue) {
+      await this.handleQueueEnd(queue);
+      return;
+    }
+
+    // ✅ FIX: Only check isEmpty if NOT in loop song mode
+    if (queue.loop !== 1 && queue.isEmpty() && !queue.currentSong) {
       await this.handleQueueEnd(queue);
       return;
     }
@@ -350,10 +357,46 @@ class MusicPlayer {
 
   setupPlayerListeners(player, connection, guildId) {
     player.on(AudioPlayerStatus.Idle, () => {
-      logger.info("Player is idle, attempting to play next song...");
+      logger.info("Player is idle");
       const queue = QueueManager.get(guildId);
-      if (queue) {
-        setTimeout(() => this.play(queue), 1000);
+
+      if (!queue) {
+        logger.warn("Queue not found");
+        return;
+      }
+
+      logger.info(`Current loop mode: ${queue.loop}`);
+
+      if (queue.loop === 1) {
+        // Loop SONG
+        if (!queue.currentSong) {
+          logger.warn("Loop song mode but no current song");
+          this.handleQueueEnd(queue);
+          return;
+        }
+
+        logger.info("Loop mode: Song - Replaying current song");
+        setTimeout(() => {
+          queue.isPlaying = true;
+          this.play(queue);
+        }, 500);
+      } else if (queue.loop === 2) {
+        // Loop QUEUE
+        if (queue.currentSong) {
+          logger.info("Loop mode: Queue - Adding current song to end");
+          queue.addSong(queue.currentSong);
+        }
+        setTimeout(() => this.play(queue), 500);
+      } else {
+        // No Loop
+        logger.info("Loop mode: Off - Playing next song");
+
+        if (queue.isEmpty()) {
+          logger.info("No more songs, ending queue");
+          this.handleQueueEnd(queue);
+        } else {
+          setTimeout(() => this.play(queue), 1000);
+        }
       }
     });
 
@@ -380,7 +423,6 @@ class MusicPlayer {
         const errorMsg = this.getErrorMessage(error);
         queue.textChannel.send(`❌ ${errorMsg}`).catch(console.error);
 
-        // Try next song
         setTimeout(() => this.play(queue), 2000);
       }
     });
@@ -398,14 +440,41 @@ class MusicPlayer {
         logger.info("Voice connection recovered");
       } catch (error) {
         logger.error("Voice connection could not be recovered, destroying...");
-        connection.destroy();
+
+        // ✅ Check if not already destroyed before destroying
+        if (connection.state.status !== "destroyed") {
+          try {
+            connection.destroy();
+          } catch (destroyError) {
+            logger.warn(`Connection destroy error: ${destroyError.message}`);
+          }
+        }
+
         QueueManager.delete(guildId);
       }
     });
 
     connection.on(VoiceConnectionStatus.Destroyed, () => {
       logger.warn(`Voice connection destroyed in guild ${guildId}`);
-      QueueManager.delete(guildId);
+
+      // ✅ Don't try to destroy again, just clean up queue
+      const queue = QueueManager.get(guildId);
+      if (queue) {
+        // Clear connection reference without destroying
+        queue.connection = null;
+
+        // Stop player if exists
+        if (queue.player) {
+          try {
+            queue.player.stop(true);
+          } catch (error) {
+            logger.warn(`Player stop error: ${error.message}`);
+          }
+        }
+
+        // Delete queue from manager
+        this.queues.delete(guildId);
+      }
     });
 
     connection.on("error", (error) => {
@@ -423,6 +492,12 @@ class MusicPlayer {
 
   async handleQueueEnd(queue) {
     if (!queue) return;
+
+    // Don't end if loop mode active with current song
+    if ((queue.loop === 1 || queue.loop === 2) && queue.currentSong) {
+      logger.info("Queue has active loop mode, not ending");
+      return;
+    }
 
     logger.info("Queue ended");
     queue.isPlaying = false;
@@ -442,9 +517,12 @@ class MusicPlayer {
       const queue = QueueManager.get(guildId);
       if (queue && !queue.isPlaying) {
         logger.info(`Disconnecting from guild ${guildId} due to inactivity`);
+
         queue.textChannel
           .send("👋 Left the voice channel due to inactivity.")
           .catch(console.error);
+
+        // ✅ Safe delete
         QueueManager.delete(guildId);
       }
     }, music.disconnectTime);
